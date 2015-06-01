@@ -91,6 +91,14 @@ public class Main extends PApplet{
          case 's':
             play = !play;
             break;
+         
+         case 'z':
+            ANIMATION += 10;
+            break;
+
+         case 'x':
+            ANIMATION -= 10;
+            break;
       }
    }
 
