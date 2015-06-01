@@ -41,7 +41,7 @@ public class DeadNode implements Node{
       int totalNeighbors = 0;
 
       for (Point pt : neighbors){
-         if (pt != null && main.getNodeAtPoint(pt).getClass() == AliveNode.class){
+         if (pt != null && main.getNodeAtPoint(main.world, pt).getClass() == AliveNode.class){
             totalNeighbors += 1;
          }
       }

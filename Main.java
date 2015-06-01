@@ -1,4 +1,5 @@
 import processing.core.*;
+import java.util.Random;
 
 public class Main extends PApplet{
 
@@ -8,10 +9,11 @@ public class Main extends PApplet{
    private final int width = 640;
    private final int height = 480;
 
-   private final int widthTiles = this.width / 16;
-   private final int heightTiles = this.height / 16;
+   private int tileSize = 16;
+   private int widthTiles = this.width / this.tileSize;
+   private int heightTiles = this.height / this.tileSize;
 
-   private Node[][] world = new Node[widthTiles][heightTiles];
+   public Node[][] world = new Node[widthTiles][heightTiles];
    
    private boolean play;
    private long nextTime;
@@ -28,7 +30,7 @@ public class Main extends PApplet{
       for (int x = 0; x < widthTiles; x++){
          for (int y = 0; y< heightTiles; y++){
             Point pt = new Point(x,y);
-            setNodeAtPoint(pt, new DeadNode(pt));
+            setNodeAtPoint(world, pt, new DeadNode(pt));
          }
       }
 
@@ -54,33 +56,33 @@ public class Main extends PApplet{
       boolean[][] killOrDie = new boolean[widthTiles][heightTiles];
       for (int x = 0; x < widthTiles; x++){
          for (int y = 0; y < heightTiles; y++){
-            Node node = getNodeAtPoint(new Point(x, y));
+            Node node = getNodeAtPoint(world, new Point(x, y));
             killOrDie[x][y] = node.action(this);
          }
       }
       for (int i = 0; i < widthTiles; i++){
          for (int j = 0; j < heightTiles; j++){
             Point pt = new Point(i, j);
-            Node node = getNodeAtPoint(pt);
+            Node node = getNodeAtPoint(world, pt);
             if (killOrDie[i][j] == false && node.getClass() == AliveNode.class){
-               setNodeAtPoint(pt, new DeadNode(pt));
+               setNodeAtPoint(world, pt, new DeadNode(pt));
             }else if (killOrDie[i][j] == true && node.getClass() == DeadNode.class){
-               setNodeAtPoint(pt, new AliveNode(pt));
+               setNodeAtPoint(world, pt, new AliveNode(pt));
             }
          }
       }
    }
 
    public void drawMouse(){
-      Point mouse = new Point(mouseX / 16, mouseY / 16);
-      image(mouseImage, mouse.getX() * 16, mouse.getY() * 16);
+      Point mouse = new Point(mouseX / tileSize, mouseY / tileSize);
+      image(mouseImage, mouse.getX() * tileSize, mouse.getY() * tileSize, tileSize, tileSize);
    }
 
    public void drawNodesWorld(){
       for (int x = 0; x < widthTiles; x++){
          for (int y = 0; y < heightTiles; y++){
             if (world[x][y].getClass() == AliveNode.class){
-               image(nodeImage, x * 16, y * 16);
+               image(nodeImage, x * tileSize, y * tileSize, tileSize, tileSize);
             }
          }
       }
@@ -99,27 +101,84 @@ public class Main extends PApplet{
          case 'x':
             ANIMATION -= 10;
             break;
+
+         case 'q':
+            if (!play && tileSize > 2){
+               tileSize -= 2;
+               Node[][] newWorld = new Node[this.width / this.tileSize][this.height / this.tileSize];
+               for (int x = 0; x < (this.width / this.tileSize); x++){
+                  for (int y = 0; y < (this.height / this.tileSize); y++){
+                     Point pt = new Point(x,y);
+                     setNodeAtPoint(newWorld, pt, new DeadNode(pt));
+                  }
+               }
+
+               for (int x = 0; x < this.widthTiles; x++){
+                  for (int y = 0; y < this.heightTiles; y++){
+                     newWorld[x][y] = world[x][y];
+                  }
+               }
+
+               this.widthTiles = this.width / this.tileSize;
+               this.heightTiles = this.height / this.tileSize;
+               world = newWorld;
+            }
+            break;
+
+         case 'e':
+            if (!play && tileSize < 32){
+               tileSize += 2;
+               Node[][] newWorld = new Node[this.width / this.tileSize][this.height / this.tileSize];
+               for (int x = 0; x < (this.width / this.tileSize); x++){
+                  for (int y = 0; y < (this.height / this.tileSize); y++){
+                     Point pt = new Point(x, y);
+                     setNodeAtPoint(newWorld, pt, getNodeAtPoint(world, pt));
+                  }
+               }
+
+               this.widthTiles = this.width / this.tileSize;
+               this.heightTiles = this.height / this.tileSize;
+               world = newWorld;
+            }
+            break;
+
+         case 'r':
+            if (!play){
+               Random r = new Random();
+               for (int x = 0; x < this.widthTiles; x++){
+                  for (int y = 0; y < this.heightTiles; y++){
+                     int num = r.nextInt(2);
+                     Point pt = new Point(x, y);
+                     if (num == 0){
+                        setNodeAtPoint(world, pt, new DeadNode(pt));
+                     }else if (num == 1){
+                        setNodeAtPoint(world, pt, new AliveNode(pt));
+                     }
+                  }
+               }
+            }
+            break;
       }
    }
 
    public void mousePressed(){
-      Point mouse = new Point(mouseX / 16, mouseY / 16);
-      Node node = getNodeAtPoint(mouse);
+      Point mouse = new Point(mouseX / tileSize, mouseY / tileSize);
+      Node node = getNodeAtPoint(world, mouse);
 
       if (node.getClass() == DeadNode.class){
-         setNodeAtPoint(mouse, new AliveNode(mouse));
+         setNodeAtPoint(world, mouse, new AliveNode(mouse));
       }
       else if (node.getClass() == AliveNode.class){
-         setNodeAtPoint(mouse, new DeadNode(mouse));
+         setNodeAtPoint(world, mouse, new DeadNode(mouse));
       }
    }
 
-   public void setNodeAtPoint(Point pt, Node node){
-      world[pt.getX()][pt.getY()] = node;
+   public void setNodeAtPoint(Node[][] array, Point pt, Node node){
+      array[pt.getX()][pt.getY()] = node;
    }
 
-   public Node getNodeAtPoint(Point pt){
-      return world[pt.getX()][pt.getY()];
+   public Node getNodeAtPoint(Node[][] array, Point pt){
+      return array[pt.getX()][pt.getY()];
    }
    
    public Point checkAndReturnPoint(Point pt){
