@@ -1,17 +1,5 @@
-import processing.core.*;
-
-public class Node{
-   private Point pt;
-   
-   public Node(Point pt){
-      this.pt = pt;
-   }
-
-   public void setPosition(Point pt){
-      this.pt = pt;
-   }
-
-   public Point getPosition(){
-      return this.pt;
-   }
+public interface Node{
+   public void setPosition(Point pt);
+   public Point getPosition();
+   public boolean action(Main main);
 }
